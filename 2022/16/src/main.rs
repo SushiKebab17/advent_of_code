@@ -1,12 +1,12 @@
 use search::bft;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 aoc::parts!(1);
 
 fn part_1(input: &[&str]) -> bool {
     let (initial_graph, valves) = parse(input);
-    println!("{:?}", initial_graph);
-    let mut complete_graph: HashMap<String, (u32, Vec<(String, u8)>)> = HashMap::new();
+    //println!("{:?}", initial_graph);
+    let mut complete_graph: HashMap<String, ValveInfo> = HashMap::new();
     for valve in initial_graph.keys() {
         if initial_graph[valve].0 != 0 || valve == "AA" {
             for other_valve in &valves {
@@ -24,25 +24,74 @@ fn part_1(input: &[&str]) -> bool {
                     let goal = traverse.find(|s| s.node == *other_valve).unwrap();
                     complete_graph
                         .entry(valve.clone())
-                        .and_modify(|x| x.1.push((other_valve.clone(), goal.cost + 1)))
-                        .or_insert((
-                            initial_graph[valve].0,
-                            vec![(other_valve.clone(), goal.cost + 1)],
-                        ));
+                        .and_modify(|x| x.other_valves.push((other_valve.clone(), goal.cost + 1)))
+                        .or_insert(ValveInfo {
+                            flow_rate: (initial_graph[valve].0),
+                            other_valves: (vec![(other_valve.clone(), goal.cost + 1)]),
+                        });
                 }
             }
         }
     }
-    println!();
-    for k in complete_graph.keys() {
-        println!("{k}, {:?}", complete_graph[k]);
-    }
+    // println!();
+    // for k in complete_graph.keys() {
+    //     println!("{k}, {:?}", complete_graph[k]);
+    // }
+    let mut time = 0;
+    let mut max = 0;
+    let mut curr_release = 0;
+    let mut visited: HashSet<String> = HashSet::new();
+    visited.insert("AA".to_string());
+    all_paths(
+        &complete_graph,
+        &("AA".to_string(), 0),
+        &mut time,
+        &mut max,
+        &mut curr_release,
+        &mut visited,
+    );
+    println!("{}", max);
     unimplemented!()
 }
 
 // fn part_2(input: &[&str]) -> bool {
 //     unimplemented!()
 // }
+
+fn all_paths(
+    complete_graph: &HashMap<String, ValveInfo>,
+    (valve, dist): &(String, u8),
+    time: &mut u32,
+    max: &mut u32,
+    curr_release: &mut u32,
+    visited: &mut HashSet<String>,
+) {
+    if *time + *dist as u32 > 30 {
+        return;
+    }
+    *time += *dist as u32;
+    *curr_release += (30 - *time) * complete_graph[valve].flow_rate;
+    println!(
+        "{}, {}, {} \n {:?}",
+        valve, dist, curr_release, &complete_graph[valve].other_valves
+    );
+    for adj_valveinfo in &complete_graph[valve].other_valves {
+        let adj_valve = (*adj_valveinfo.0).to_string();
+        if !visited.contains(&adj_valve) {
+            visited.insert(adj_valve.clone());
+            all_paths(
+                complete_graph,
+                adj_valveinfo,
+                time,
+                max,
+                curr_release,
+                visited,
+            );
+            visited.remove(&adj_valve);
+        }
+    }
+    *max = *max.max(curr_release);
+}
 
 fn parse(input: &[&str]) -> (HashMap<String, (u32, Vec<String>)>, Vec<String>) {
     let mut initial_graph = HashMap::new();
@@ -97,4 +146,10 @@ impl State {
         }
         states
     }
+}
+
+#[derive(Debug)]
+struct ValveInfo {
+    flow_rate: u32,
+    other_valves: Vec<(String, u8)>,
 }

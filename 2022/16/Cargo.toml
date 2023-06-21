@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-aocli-runner = { git = "https://github.com/scjqt/aocli-runner" }
-search = { git = "https://github.com/scjqt/search" }
+aoclib = { git = "https://github.com/sncxyz/aoclib" }
+search = { git = "https://github.com/sncxyz/search" }
