@@ -1,6 +1,6 @@
 use search::bft;
 use std::collections::{HashMap, HashSet};
-use std::time::Instant;
+// use std::time::Instant;
 // let now = Instant::now();
 // let elapsed = now.elapsed().as_micros();
 // println!("{}ms", elapsed as f64 / 1000.);
@@ -9,7 +9,6 @@ aoc::parts!(1, 2);
 
 fn part_1(input: &[&str]) -> u32 {
     let complete_graph = parse(input);
-    let now = Instant::now();
     let mut time = 0;
     let mut max = 0;
     let mut curr_release = 0;
@@ -23,8 +22,6 @@ fn part_1(input: &[&str]) -> u32 {
         &mut curr_release,
         &mut visited,
     );
-    let elapsed = now.elapsed().as_micros();
-    println!("{}ms", elapsed as f64 / 1000.);
     max
 }
 
@@ -39,10 +36,6 @@ fn part_2(input: &[&str]) -> u32 {
     let mut max = 0;
     let mut curr_release = 0;
     let mut visited: HashSet<Valve> = HashSet::new();
-    //
-    let mut me_curr_sol: Vec<(Valve, u32)> = Vec::new();
-    let mut el_curr_sol: Vec<(Valve, u32)> = Vec::new();
-    //
     visited.insert(Valve::new("AA"));
     all_paths_me(
         &complete_graph,
@@ -52,10 +45,6 @@ fn part_2(input: &[&str]) -> u32 {
         &mut max,
         &mut curr_release,
         &mut visited,
-        //
-        &mut me_curr_sol,
-        &mut el_curr_sol,
-        "".to_string(), //
     );
     max
 }
@@ -101,10 +90,6 @@ fn all_paths_me(
     max: &mut u32,
     curr_release: &mut u32,
     visited: &mut HashSet<Valve>,
-    //
-    me_curr_sol: &mut Vec<(Valve, u32)>,
-    el_curr_sol: &mut Vec<(Valve, u32)>,
-    space: String, //
 ) {
     if *me_time + *dist as u32 > 26 || *elephant_time + *dist as u32 > 26 {
         return;
@@ -113,22 +98,10 @@ fn all_paths_me(
     *me_time += *dist as u32;
     *curr_release += (26 - *me_time) * complete_graph[valve].flow_rate;
 
-    me_curr_sol.push((*valve, *me_time));
-    // println!(
-    //     "{}me, {}{}, {}, {}",
-    //     space, valve.0[0], valve.0[1], dist, curr_release
-    // );
-    // if *curr_release > 2600 {
-    //     println!("{:?}", me_curr_sol);
-    //     println!("{:?}", el_curr_sol);
-    //     std::io::stdin().read_line(&mut String::new()).unwrap();
-    // }
-
     for adj_valveinfo in &complete_graph[valve].other_valves {
         let adj_valve = Valve((adj_valveinfo.0).0);
         if !visited.contains(&adj_valve) {
             visited.insert(adj_valve.clone());
-            let new = space.clone() + " ";
             let mut curr = adj_valveinfo;
             for valve in &complete_graph[&Valve(['A', 'A'])].other_valves {
                 if valve.0 == adj_valve {
@@ -144,9 +117,6 @@ fn all_paths_me(
                 max,
                 curr_release,
                 visited,
-                me_curr_sol,
-                el_curr_sol,
-                new.clone(),
             );
             all_paths_me(
                 complete_graph,
@@ -156,9 +126,6 @@ fn all_paths_me(
                 max,
                 curr_release,
                 visited,
-                me_curr_sol,
-                el_curr_sol,
-                new.clone(),
             );
             visited.remove(&adj_valve);
         }
@@ -166,7 +133,6 @@ fn all_paths_me(
     *max = *max.max(curr_release);
     *curr_release -= (26 - *me_time) * complete_graph[valve].flow_rate;
     *me_time -= *dist as u32;
-    me_curr_sol.pop();
 }
 
 fn all_paths_el(
@@ -177,10 +143,6 @@ fn all_paths_el(
     max: &mut u32,
     curr_release: &mut u32,
     visited: &mut HashSet<Valve>,
-    //
-    me_curr_sol: &mut Vec<(Valve, u32)>,
-    el_curr_sol: &mut Vec<(Valve, u32)>,
-    space: String, //
 ) {
     if *me_time + *dist as u32 > 26 || *elephant_time + *dist as u32 > 26 {
         return;
@@ -188,22 +150,10 @@ fn all_paths_el(
     *elephant_time += *dist as u32;
     *curr_release += (26 - *elephant_time) * complete_graph[valve].flow_rate;
 
-    el_curr_sol.push((*valve, *elephant_time));
-    // println!(
-    //     "{}el, time:{}, {}{}, {}, {}",
-    //     space, elephant_time, valve.0[0], valve.0[1], dist, curr_release
-    // );
-    // if *curr_release > 2600 {
-    //     println!("{:?}", me_curr_sol);
-    //     println!("{:?}", el_curr_sol);
-    //     std::io::stdin().read_line(&mut String::new()).unwrap();
-    // }
-
     for adj_valveinfo in &complete_graph[valve].other_valves {
         let adj_valve = Valve((adj_valveinfo.0).0);
         if !visited.contains(&adj_valve) {
             visited.insert(adj_valve.clone());
-            let new = space.clone() + " ";
             all_paths_el(
                 complete_graph,
                 adj_valveinfo,
@@ -212,9 +162,6 @@ fn all_paths_el(
                 max,
                 curr_release,
                 visited,
-                me_curr_sol,
-                el_curr_sol,
-                new,
             );
             visited.remove(&adj_valve);
         }
@@ -222,7 +169,6 @@ fn all_paths_el(
     *max = *max.max(curr_release);
     *curr_release -= (26 - *elephant_time) * complete_graph[valve].flow_rate;
     *elephant_time -= *dist as u32;
-    el_curr_sol.pop();
 }
 
 fn parse(input: &[&str]) -> HashMap<Valve, ValveInfo> {
