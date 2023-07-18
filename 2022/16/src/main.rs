@@ -9,17 +9,15 @@ aoc::parts!(1, 2);
 
 fn part_1(input: &[&str]) -> u32 {
     let complete_graph = parse(input);
-    let mut time = 0;
     let mut max = 0;
-    let mut curr_release = 0;
     let mut visited: HashSet<Valve> = HashSet::new();
     visited.insert(Valve::new("AA"));
     all_paths_pt1(
         &complete_graph,
-        &(Valve::new("AA"), 0),
-        &mut time,
+        Valve::new("AA"),
+        0,
         &mut max,
-        &mut curr_release,
+        0,
         &mut visited,
     );
     max
@@ -31,19 +29,15 @@ fn part_2(input: &[&str]) -> u32 {
     //     println!("{:?}: {:?}\n", val, complete_graph[val]);
     // }
     // std::io::stdin().read_line(&mut String::new()).unwrap();
-    let mut me_time = 0;
-    let mut elephant_time = 0;
     let mut max = 0;
-    let mut curr_release = 0;
     let mut visited: HashSet<Valve> = HashSet::new();
     visited.insert(Valve::new("AA"));
     all_paths_me(
         &complete_graph,
-        &(Valve::new("AA"), 0),
-        &mut me_time,
-        &mut elephant_time,
+        Valve::new("AA"),
+        0,
         &mut max,
-        &mut curr_release,
+        0,
         &mut visited,
     );
     max
@@ -51,124 +45,97 @@ fn part_2(input: &[&str]) -> u32 {
 
 fn all_paths_pt1(
     complete_graph: &HashMap<Valve, ValveInfo>,
-    (valve, dist): &(Valve, u8),
-    time: &mut u32,
+    valve: Valve,
+    mut time: u32,
     max: &mut u32,
-    curr_release: &mut u32,
+    mut curr_release: u32,
     visited: &mut HashSet<Valve>,
 ) {
-    if *time + *dist as u32 > 30 {
-        return;
-    }
-    *time += *dist as u32;
-    *curr_release += (30 - *time) * complete_graph[valve].flow_rate;
-    for adj_valveinfo in &complete_graph[valve].other_valves {
-        let adj_valve = Valve((adj_valveinfo.0).0);
-        if !visited.contains(&adj_valve) {
-            visited.insert(adj_valve.clone());
-            all_paths_pt1(
-                complete_graph,
-                adj_valveinfo,
-                time,
-                max,
-                curr_release,
-                visited,
-            );
-            visited.remove(&adj_valve);
+    curr_release += (30 - time) * complete_graph[&valve].flow_rate;
+    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
+        if !visited.contains(adj_valve) && time + dist_to_adj as u32 <= 30 {
+            visited.insert(*adj_valve);
+            time += dist_to_adj as u32;
+            all_paths_pt1(complete_graph, *adj_valve, time, max, curr_release, visited);
+            time -= dist_to_adj as u32;
+            visited.remove(adj_valve);
         }
     }
-    *max = *max.max(curr_release);
-    *curr_release -= (30 - *time) * complete_graph[valve].flow_rate;
-    *time -= *dist as u32;
+    *max = (*max).max(curr_release);
 }
 
 fn all_paths_me(
     complete_graph: &HashMap<Valve, ValveInfo>,
-    (valve, dist): &(Valve, u8),
-    me_time: &mut u32,
-    elephant_time: &mut u32,
+    valve: Valve,
+    mut me_time: u32,
     max: &mut u32,
-    curr_release: &mut u32,
+    mut curr_release: u32,
     visited: &mut HashSet<Valve>,
 ) {
-    if *me_time + *dist as u32 > 26 || *elephant_time + *dist as u32 > 26 {
-        return;
-    }
+    curr_release += (26 - me_time) * complete_graph[&valve].flow_rate;
+    all_paths_el(
+        complete_graph,
+        Valve::new("AA"),
+        0,
+        max,
+        curr_release,
+        visited,
+    );
 
-    *me_time += *dist as u32;
-    *curr_release += (26 - *me_time) * complete_graph[valve].flow_rate;
-
-    for adj_valveinfo in &complete_graph[valve].other_valves {
-        let adj_valve = Valve((adj_valveinfo.0).0);
-        if !visited.contains(&adj_valve) {
-            visited.insert(adj_valve.clone());
-            let mut curr = adj_valveinfo;
-            for valve in &complete_graph[&Valve(['A', 'A'])].other_valves {
-                if valve.0 == adj_valve {
-                    curr = valve;
-                    break;
-                }
-            }
-            all_paths_el(
-                complete_graph,
-                curr,
-                me_time,
-                elephant_time,
-                max,
-                curr_release,
-                visited,
-            );
+    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
+        // println!("{}{}{}", space, adj_valve.0[0], adj_valve.0[1]);
+        // println!("{}{:?}", space, visited);
+        if !visited.contains(&adj_valve) && me_time + dist_to_adj as u32 <= 26 {
+            visited.insert(*adj_valve);
+            me_time += dist_to_adj as u32;
             all_paths_me(
                 complete_graph,
-                adj_valveinfo,
+                *adj_valve,
                 me_time,
-                elephant_time,
                 max,
                 curr_release,
                 visited,
             );
+            me_time -= dist_to_adj as u32;
             visited.remove(&adj_valve);
         }
     }
-    *max = *max.max(curr_release);
-    *curr_release -= (26 - *me_time) * complete_graph[valve].flow_rate;
-    *me_time -= *dist as u32;
 }
 
 fn all_paths_el(
     complete_graph: &HashMap<Valve, ValveInfo>,
-    (valve, dist): &(Valve, u8),
-    me_time: &mut u32,
-    elephant_time: &mut u32,
+    valve: Valve,
+    mut elephant_time: u32,
     max: &mut u32,
-    curr_release: &mut u32,
+    mut curr_release: u32,
     visited: &mut HashSet<Valve>,
 ) {
-    if *me_time + *dist as u32 > 26 || *elephant_time + *dist as u32 > 26 {
-        return;
-    }
-    *elephant_time += *dist as u32;
-    *curr_release += (26 - *elephant_time) * complete_graph[valve].flow_rate;
+    curr_release += (26 - elephant_time) * complete_graph[&valve].flow_rate;
 
-    for adj_valveinfo in &complete_graph[valve].other_valves {
-        let adj_valve = Valve((adj_valveinfo.0).0);
-        if !visited.contains(&adj_valve) {
-            visited.insert(adj_valve.clone());
+    // if curr_release == 2700 {
+    //     println!("{:?}", me_curr_sol);
+    //     println!("{:?}", el_curr_sol);
+    //     println!("{:?}", visited);
+    //     std::io::stdin().read_line(&mut String::new()).unwrap();
+    // }
+
+    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
+        if !visited.contains(adj_valve) && elephant_time + dist_to_adj as u32 <= 26 {
+            visited.insert(*adj_valve);
+            elephant_time += dist_to_adj as u32;
             all_paths_el(
                 complete_graph,
-                adj_valveinfo,
-                me_time,
+                *adj_valve,
                 elephant_time,
                 max,
                 curr_release,
                 visited,
             );
-            visited.remove(&adj_valve);
+            elephant_time -= dist_to_adj as u32;
+            visited.remove(adj_valve);
         }
     }
-    *max = *max.max(curr_release);
-    *curr_release -= (26 - *elephant_time) * complete_graph[valve].flow_rate;
-    *elephant_time -= *dist as u32;
+    *max = (*max).max(curr_release);
 }
 
 fn parse(input: &[&str]) -> HashMap<Valve, ValveInfo> {
@@ -223,10 +190,12 @@ fn parse(input: &[&str]) -> HashMap<Valve, ValveInfo> {
                     let goal = traverse.find(|s| s.node == *other_valve).unwrap();
                     complete_graph
                         .entry(*valve)
-                        .and_modify(|x| x.other_valves.push((*other_valve, goal.cost + 1)))
+                        .and_modify(|x| {
+                            x.other_valves.insert(*other_valve, goal.cost + 1);
+                        })
                         .or_insert(ValveInfo {
                             flow_rate: (initial_graph[valve].0),
-                            other_valves: (vec![(*other_valve, goal.cost + 1)]),
+                            other_valves: (HashMap::from([(*other_valve, goal.cost + 1)])),
                         });
                 }
             }
@@ -256,7 +225,7 @@ impl State {
 #[derive(Debug)]
 struct ValveInfo {
     flow_rate: u32,
-    other_valves: Vec<(Valve, u8)>,
+    other_valves: HashMap<Valve, u8>,
 }
 
 #[derive(Eq, Hash, PartialEq, Debug, Clone, Copy)]
