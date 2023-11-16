@@ -30,18 +30,40 @@ fn part_2(input: &[&str]) -> u32 {
     // }
     // std::io::stdin().read_line(&mut String::new()).unwrap();
     let powerset = generate_subsets(&valves);
-
+    let mut all_valves = HashSet::new();
+    for valve in valves {
+        all_valves.insert(valve);
+    }
+    // let y = vec![Valve::new("11"), Valve::new("22"), Valve::new("33")];
+    // println!("{:?}", y);
+    // println!("{:?}", generate_subsets(&y));
     let mut max = 0;
-    let mut visited: HashSet<Valve> = HashSet::new();
-    visited.insert(Valve::new("AA"));
-    all_paths_pt1(
-        &complete_graph,
-        Valve::new("AA"),
-        26,
-        &mut max,
-        0,
-        &mut visited,
-    );
+    for set in &powerset {
+        let mut max_a = 0;
+        let mut max_b = 0;
+        let complement: HashSet<Valve> = &all_valves - set;
+        let mut visited: HashSet<Valve> = HashSet::new();
+        visited.insert(Valve::new("AA"));
+        all_paths_pt2(
+            &complete_graph,
+            Valve::new("AA"),
+            26,
+            &mut max_a,
+            0,
+            &mut visited,
+            set,
+        );
+        all_paths_pt2(
+            &complete_graph,
+            Valve::new("AA"),
+            26,
+            &mut max_b,
+            0,
+            &mut visited,
+            &complement,
+        );
+        max = max.max(max_a + max_b);
+    }
     max
 }
 
@@ -74,6 +96,39 @@ fn all_paths_pt1(
             visited.insert(*adj_valve);
             time -= dist_to_adj as u32;
             all_paths_pt1(complete_graph, *adj_valve, time, max, curr_release, visited);
+            time += dist_to_adj as u32;
+            visited.remove(adj_valve);
+        }
+    }
+    *max = (*max).max(curr_release);
+}
+
+fn all_paths_pt2(
+    complete_graph: &HashMap<Valve, ValveInfo>,
+    valve: Valve,
+    mut time: u32,
+    max: &mut u32,
+    mut curr_release: u32,
+    visited: &mut HashSet<Valve>,
+    partition: &HashSet<Valve>,
+) {
+    curr_release += time * complete_graph[&valve].flow_rate;
+    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
+        if partition.contains(adj_valve)
+            && !visited.contains(adj_valve)
+            && time > dist_to_adj as u32
+        {
+            visited.insert(*adj_valve);
+            time -= dist_to_adj as u32;
+            all_paths_pt2(
+                complete_graph,
+                *adj_valve,
+                time,
+                max,
+                curr_release,
+                visited,
+                partition,
+            );
             time += dist_to_adj as u32;
             visited.remove(adj_valve);
         }
