@@ -8,14 +8,14 @@ use std::collections::{HashMap, HashSet};
 aoc::parts!(1, 2);
 
 fn part_1(input: &[&str]) -> u32 {
-    let complete_graph = parse(input);
+    let complete_graph = parse(input).0;
     let mut max = 0;
     let mut visited: HashSet<Valve> = HashSet::new();
     visited.insert(Valve::new("AA"));
     all_paths_pt1(
         &complete_graph,
         Valve::new("AA"),
-        0,
+        30,
         &mut max,
         0,
         &mut visited,
@@ -24,23 +24,40 @@ fn part_1(input: &[&str]) -> u32 {
 }
 
 fn part_2(input: &[&str]) -> u32 {
-    let complete_graph = parse(input);
+    let (complete_graph, valves) = parse(input);
     // for val in complete_graph.keys() {
     //     println!("{:?}: {:?}\n", val, complete_graph[val]);
     // }
     // std::io::stdin().read_line(&mut String::new()).unwrap();
+    let powerset = generate_subsets(&valves);
+
     let mut max = 0;
     let mut visited: HashSet<Valve> = HashSet::new();
     visited.insert(Valve::new("AA"));
-    all_paths_me(
+    all_paths_pt1(
         &complete_graph,
         Valve::new("AA"),
-        0,
+        26,
         &mut max,
         0,
         &mut visited,
     );
     max
+}
+
+fn generate_subsets(valves: &[Valve]) -> Vec<HashSet<Valve>> {
+    if valves.is_empty() {
+        return vec![HashSet::new()];
+    }
+    let rest = generate_subsets(&valves[1..]);
+    let mut all = Vec::new();
+    for subset in &rest {
+        let mut new = subset.clone();
+        all.push(new.clone());
+        new.insert(valves[0]);
+        all.push(new);
+    }
+    all
 }
 
 fn all_paths_pt1(
@@ -51,94 +68,20 @@ fn all_paths_pt1(
     mut curr_release: u32,
     visited: &mut HashSet<Valve>,
 ) {
-    curr_release += (30 - time) * complete_graph[&valve].flow_rate;
+    curr_release += time * complete_graph[&valve].flow_rate;
     for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
-        if !visited.contains(adj_valve) && time + dist_to_adj as u32 <= 30 {
+        if !visited.contains(adj_valve) && time > dist_to_adj as u32 {
             visited.insert(*adj_valve);
-            time += dist_to_adj as u32;
-            all_paths_pt1(complete_graph, *adj_valve, time, max, curr_release, visited);
             time -= dist_to_adj as u32;
+            all_paths_pt1(complete_graph, *adj_valve, time, max, curr_release, visited);
+            time += dist_to_adj as u32;
             visited.remove(adj_valve);
         }
     }
     *max = (*max).max(curr_release);
 }
 
-fn all_paths_me(
-    complete_graph: &HashMap<Valve, ValveInfo>,
-    valve: Valve,
-    mut me_time: u32,
-    max: &mut u32,
-    mut curr_release: u32,
-    visited: &mut HashSet<Valve>,
-) {
-    curr_release += (26 - me_time) * complete_graph[&valve].flow_rate;
-    all_paths_el(
-        complete_graph,
-        Valve::new("AA"),
-        0,
-        max,
-        curr_release,
-        visited,
-    );
-
-    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
-        // println!("{}{}{}", space, adj_valve.0[0], adj_valve.0[1]);
-        // println!("{}{:?}", space, visited);
-        if !visited.contains(&adj_valve) && me_time + dist_to_adj as u32 <= 26 {
-            visited.insert(*adj_valve);
-            me_time += dist_to_adj as u32;
-            all_paths_me(
-                complete_graph,
-                *adj_valve,
-                me_time,
-                max,
-                curr_release,
-                visited,
-            );
-            me_time -= dist_to_adj as u32;
-            visited.remove(&adj_valve);
-        }
-    }
-}
-
-fn all_paths_el(
-    complete_graph: &HashMap<Valve, ValveInfo>,
-    valve: Valve,
-    mut elephant_time: u32,
-    max: &mut u32,
-    mut curr_release: u32,
-    visited: &mut HashSet<Valve>,
-) {
-    curr_release += (26 - elephant_time) * complete_graph[&valve].flow_rate;
-
-    // if curr_release == 2700 {
-    //     println!("{:?}", me_curr_sol);
-    //     println!("{:?}", el_curr_sol);
-    //     println!("{:?}", visited);
-    //     std::io::stdin().read_line(&mut String::new()).unwrap();
-    // }
-
-    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
-        if !visited.contains(adj_valve) && elephant_time + dist_to_adj as u32 <= 26 {
-            visited.insert(*adj_valve);
-            elephant_time += dist_to_adj as u32;
-            all_paths_el(
-                complete_graph,
-                *adj_valve,
-                elephant_time,
-                max,
-                curr_release,
-                visited,
-            );
-            elephant_time -= dist_to_adj as u32;
-            visited.remove(adj_valve);
-        }
-    }
-    *max = (*max).max(curr_release);
-}
-
-fn parse(input: &[&str]) -> HashMap<Valve, ValveInfo> {
+fn parse(input: &[&str]) -> (HashMap<Valve, ValveInfo>, Vec<Valve>) {
     let mut initial_graph = HashMap::new();
     let mut valves = Vec::new();
     for line in input {
@@ -201,7 +144,7 @@ fn parse(input: &[&str]) -> HashMap<Valve, ValveInfo> {
             }
         }
     }
-    complete_graph
+    (complete_graph, valves)
 }
 
 struct State {
