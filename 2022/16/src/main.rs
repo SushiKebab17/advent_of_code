@@ -34,14 +34,12 @@ fn part_2(input: &[&str]) -> u32 {
     for valve in valves {
         all_valves.insert(valve);
     }
-    // let y = vec![Valve::new("11"), Valve::new("22"), Valve::new("33")];
-    // println!("{:?}", y);
-    // println!("{:?}", generate_subsets(&y));
+    all_valves.remove(&Valve::new("AA"));
     let mut max = 0;
     for set in &powerset {
         let mut max_a = 0;
         let mut max_b = 0;
-        let complement: HashSet<Valve> = &all_valves - set;
+        let mut complement: HashSet<Valve> = &all_valves - set;
         let mut visited: HashSet<Valve> = HashSet::new();
         visited.insert(Valve::new("AA"));
         all_paths_pt2(
@@ -51,7 +49,7 @@ fn part_2(input: &[&str]) -> u32 {
             &mut max_a,
             0,
             &mut visited,
-            set,
+            &mut set.clone(),
         );
         all_paths_pt2(
             &complete_graph,
@@ -60,7 +58,7 @@ fn part_2(input: &[&str]) -> u32 {
             &mut max_b,
             0,
             &mut visited,
-            &complement,
+            &mut complement,
         );
         max = max.max(max_a + max_b);
     }
@@ -75,6 +73,7 @@ fn generate_subsets(valves: &[Valve]) -> Vec<HashSet<Valve>> {
     let mut all = Vec::new();
     for subset in &rest {
         let mut new = subset.clone();
+        new.remove(&Valve::new("AA"));
         all.push(new.clone());
         new.insert(valves[0]);
         all.push(new);
@@ -110,15 +109,13 @@ fn all_paths_pt2(
     max: &mut u32,
     mut curr_release: u32,
     visited: &mut HashSet<Valve>,
-    partition: &HashSet<Valve>,
+    partition: &mut HashSet<Valve>,
 ) {
     curr_release += time * complete_graph[&valve].flow_rate;
-    for (adj_valve, &dist_to_adj) in &complete_graph[&valve].other_valves {
-        if partition.contains(adj_valve)
-            && !visited.contains(adj_valve)
-            && time > dist_to_adj as u32
-        {
-            visited.insert(*adj_valve);
+    for adj_valve in partition.clone().iter() {
+        let dist_to_adj = complete_graph[&valve].other_valves[adj_valve];
+        if partition.contains(adj_valve) && time > dist_to_adj as u32 {
+            partition.remove(&adj_valve);
             time -= dist_to_adj as u32;
             all_paths_pt2(
                 complete_graph,
@@ -130,9 +127,10 @@ fn all_paths_pt2(
                 partition,
             );
             time += dist_to_adj as u32;
-            visited.remove(adj_valve);
+            partition.insert(*adj_valve);
         }
     }
+
     *max = (*max).max(curr_release);
 }
 
@@ -199,7 +197,12 @@ fn parse(input: &[&str]) -> (HashMap<Valve, ValveInfo>, Vec<Valve>) {
             }
         }
     }
-    (complete_graph, valves)
+    let new_valves: Vec<Valve> = complete_graph[&Valve::new("AA")]
+        .other_valves
+        .keys()
+        .cloned()
+        .collect();
+    (complete_graph, new_valves)
 }
 
 struct State {
