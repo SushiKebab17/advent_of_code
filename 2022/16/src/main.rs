@@ -24,7 +24,7 @@ fn part_2(input: &[&str]) -> u32 {
     let mut set = vec![false; valves.len()];
     let mut max = 0;
 
-    while !set[set.len() - 1] {
+    while !set.last().unwrap() {
         let mut max_a = 0;
         let mut max_b = 0;
         all_paths(&complete_graph, 0, 26, &mut max_a, 0, &mut set);
