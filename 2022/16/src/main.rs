@@ -40,15 +40,12 @@ fn part_2(input: &[&str]) -> u32 {
         let mut max_a = 0;
         let mut max_b = 0;
         let mut complement: HashSet<Valve> = &all_valves - set;
-        let mut visited: HashSet<Valve> = HashSet::new();
-        visited.insert(Valve::new("AA"));
         all_paths_pt2(
             &complete_graph,
             Valve::new("AA"),
             26,
             &mut max_a,
             0,
-            &mut visited,
             &mut set.clone(),
         );
         all_paths_pt2(
@@ -57,7 +54,6 @@ fn part_2(input: &[&str]) -> u32 {
             26,
             &mut max_b,
             0,
-            &mut visited,
             &mut complement,
         );
         max = max.max(max_a + max_b);
@@ -108,7 +104,6 @@ fn all_paths_pt2(
     mut time: u32,
     max: &mut u32,
     mut curr_release: u32,
-    visited: &mut HashSet<Valve>,
     partition: &mut HashSet<Valve>,
 ) {
     curr_release += time * complete_graph[&valve].flow_rate;
@@ -123,7 +118,6 @@ fn all_paths_pt2(
                 time,
                 max,
                 curr_release,
-                visited,
                 partition,
             );
             time += dist_to_adj as u32;
