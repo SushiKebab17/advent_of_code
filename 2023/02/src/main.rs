@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
-use aoc::{Input, IterUnwrap, Parse};
+use aoc::{Input, Parse};
 
 aoc::parts!(1, 2);
 
 fn part_1(input: Input) -> impl ToString {
+    // more idiomatic:
+    // input.lines().map(parse).map(|(id, max)| (max["red"] <= 12 && max["green"] <= 13 && max["blue"] <= 14) as u32 * id).sum()
     let mut total = 0;
     for line in input {
         let (id, max) = parse(line);
@@ -18,6 +20,8 @@ fn part_1(input: Input) -> impl ToString {
 }
 
 fn part_2(input: Input) -> impl ToString {
+    // more idiomatic:
+    // input.lines().map(parse).map(|_, max| max["red"] * max["green"] * max["blue"]).sum()
     let mut total = 0;
     for line in input {
         let (_, max) = parse(line);
