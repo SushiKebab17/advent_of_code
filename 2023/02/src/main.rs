@@ -29,7 +29,7 @@ fn part_2(input: Input) -> impl ToString {
 fn parse(line: &str) -> (u32, HashMap<&str, u32>) {
     let mut max = HashMap::from([("red", 0), ("green", 0), ("blue", 0)]);
     let mut parser = line.as_parser();
-    let id: u32 = parser.between("Game ", ": ").parse_uw();
+    let id = parser.between("Game ", ": ").parse_uw();
     for handful in parser.rest().split("; ") {
         for cubes in handful.split(", ") {
             let mut parser = cubes.as_parser();
