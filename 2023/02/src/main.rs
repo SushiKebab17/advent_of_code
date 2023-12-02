@@ -31,11 +31,9 @@ fn parse(line: &str) -> (u32, HashMap<&str, u32>) {
     let mut parser = line.as_parser();
     let id: u32 = parser.between("Game ", ": ").parse_uw();
     for handful in parser.rest().split("; ") {
-        let mut split_cubes = handful.split(", ");
-        while let Some(cubes) = split_cubes.next() {
-            let mut split_colour = cubes.split(" ");
-            let num: u32 = split_colour.next_uw().parse_uw();
-            let colour = split_colour.next_uw();
+        for cubes in handful.split(", ") {
+            let mut parser = cubes.as_parser();
+            let (num, colour) = (parser.before(" ").parse_uw(), parser.rest());
             max.insert(colour, max[colour].max(num));
         }
     }
