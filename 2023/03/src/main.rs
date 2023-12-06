@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use aoc::Input;
 use grid::prelude::*;
 
-aoc::parts!(1);
+aoc::parts!(1, 2);
 
 fn part_1(input: Input) -> impl ToString {
     let mut number_positions = parse(input);
@@ -27,9 +27,39 @@ fn part_1(input: Input) -> impl ToString {
     total
 }
 
-// fn part_2(input: Input) -> impl ToString {
-//     0
-// }
+fn part_2(input: Input) -> impl ToString {
+    let mut number_positions = parse(input);
+    let mut total = 0;
+    for (i, line) in input.lines().enumerate() {
+        'inner: for (j, ch) in line.chars().enumerate() {
+            if ch == '*' {
+                let adj = ADJACENT.iter().map(|&vec| vec + v(i as i64, j as i64));
+                let mut curr_product = 1;
+                let mut num_adj = 0;
+                for pos in adj {
+                    if number_positions.contains_key(&pos) {
+                        let num_pos = number_positions[&pos];
+                        println!("{:?}, {:?}", pos, num_pos);
+                        curr_product *= num_pos.num;
+                        num_adj += 1;
+                        for k in (num_pos.low)..(num_pos.high) {
+                            number_positions.remove(&v(num_pos.row, k as i64));
+                        }
+                        if num_adj >= 3 {
+                            continue 'inner;
+                        }
+                    }
+                }
+                if num_adj != 2 {
+                    continue 'inner;
+                }
+                println!();
+                total += curr_product;
+            }
+        }
+    }
+    total
+}
 
 fn parse(input: Input) -> HashMap<Vector, NumberPos> {
     let mut number_positions = HashMap::new();
