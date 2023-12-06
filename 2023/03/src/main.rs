@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use aoc::Input;
 use grid::prelude::*;
 
-aoc::parts!(1, 2);
+aoc::parts!(1);
 
 fn part_1(input: Input) -> impl ToString {
     let mut number_positions = parse(input);
