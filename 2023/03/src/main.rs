@@ -10,8 +10,8 @@ fn part_1(input: Input) -> impl ToString {
     let mut total = 0;
     for (i, line) in input.lines().enumerate() {
         for (j, ch) in line.chars().enumerate() {
-            if ch.to_digit(10) == None && ch != '.' {
-                let adj = ADJACENT.iter().map(|&vec| vec + v(i as i64, j as i64));
+            if !ch.is_ascii_digit() && ch != '.' {
+                let adj = ADJACENT.into_iter().map(|vec| vec + v(i as i64, j as i64));
                 for pos in adj {
                     if number_positions.contains_key(&pos) {
                         let num_pos = number_positions[&pos];
@@ -39,7 +39,6 @@ fn part_2(input: Input) -> impl ToString {
                 for pos in adj {
                     if number_positions.contains_key(&pos) {
                         let num_pos = number_positions[&pos];
-                        // println!("{:?}, {:?}", pos, num_pos);
                         curr_product *= num_pos.num;
                         num_adj += 1;
                         for k in (num_pos.low)..(num_pos.high) {
@@ -53,7 +52,6 @@ fn part_2(input: Input) -> impl ToString {
                 if num_adj != 2 {
                     continue 'inner;
                 }
-                // println!();
                 total += curr_product;
             }
         }
