@@ -39,7 +39,7 @@ fn part_2(input: Input) -> impl ToString {
                 for pos in adj {
                     if number_positions.contains_key(&pos) {
                         let num_pos = number_positions[&pos];
-                        println!("{:?}, {:?}", pos, num_pos);
+                        // println!("{:?}, {:?}", pos, num_pos);
                         curr_product *= num_pos.num;
                         num_adj += 1;
                         for k in (num_pos.low)..(num_pos.high) {
@@ -53,7 +53,7 @@ fn part_2(input: Input) -> impl ToString {
                 if num_adj != 2 {
                     continue 'inner;
                 }
-                println!();
+                // println!();
                 total += curr_product;
             }
         }
