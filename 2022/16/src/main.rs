@@ -9,6 +9,9 @@ aoc::parts!(1, 2);
 
 fn part_1(input: &[&str]) -> u32 {
     let (complete_graph, valves) = parse(input);
+    for val in complete_graph.keys() {
+        println!("{:?}: {:?}", val, complete_graph[val]);
+    }
     let mut max = 0;
     let mut all_valves = vec![true; valves.len()];
     all_paths(&complete_graph, 0, 30, &mut max, 0, &mut all_valves);
@@ -17,9 +20,6 @@ fn part_1(input: &[&str]) -> u32 {
 
 fn part_2(input: &[&str]) -> u32 {
     let (complete_graph, valves) = parse(input);
-    // for val in complete_graph.keys() {
-    //     println!("{:?}: {:?}\n", val, complete_graph[val]);
-    // }
     // std::io::stdin().read_line(&mut String::new()).unwrap();
     let mut set = vec![false; valves.len()];
     let mut max = 0;
@@ -29,6 +29,9 @@ fn part_2(input: &[&str]) -> u32 {
         let mut max_b = 0;
         all_paths(&complete_graph, 0, 26, &mut max_a, 0, &mut set);
         all_paths(&complete_graph, 0, 26, &mut max_b, 0, &mut complement(&set));
+        if max_a + max_b > 1792 {
+            std::io::stdin().read_line(&mut String::new()).unwrap();
+        }
         max = max.max(max_a + max_b);
         increment_set(&mut set);
     }
@@ -63,7 +66,7 @@ fn all_paths(
     curr_release += time * complete_graph[&valve].flow_rate;
     for adj_valve_i in 1..partition.len() {
         if valve != adj_valve_i as u32 {
-            let dist_to_adj = complete_graph[&valve].other_valves[&(adj_valve_i as u32)];
+            let dist_to_adj = complete_graph[&valve].other_valves[adj_valve_i];
             if partition[adj_valve_i - 1] && time > dist_to_adj as u32 {
                 partition[adj_valve_i - 1] = false;
                 time -= dist_to_adj as u32;
@@ -80,24 +83,6 @@ fn all_paths(
             }
         }
     }
-    // for adj_valve in partition.clone().iter() {
-    //     let dist_to_adj = complete_graph[&valve].other_valves[adj_valve];
-    //     if partition.contains(adj_valve) && time > dist_to_adj as u32 {
-    //         partition.remove(&adj_valve);
-    //         time -= dist_to_adj as u32;
-    //         all_paths(
-    //             complete_graph,
-    //             *adj_valve,
-    //             time,
-    //             max,
-    //             curr_release,
-    //             partition,
-    //         );
-    //         time += dist_to_adj as u32;
-    //         partition.insert(*adj_valve);
-    //     }
-    // }
-
     *max = (*max).max(curr_release);
 }
 
@@ -174,17 +159,32 @@ fn parse(input: &[&str]) -> (HashMap<u32, ValveInfo>, Vec<Valve>) {
                     complete_graph
                         .entry(valve_i)
                         .and_modify(|x| {
-                            x.other_valves.insert(other_valve_i, goal.cost + 1);
+                            add_with_index(&mut x.other_valves, other_valve_i, goal.cost + 1)
                         })
                         .or_insert(ValveInfo {
                             flow_rate: (initial_graph[valve].0),
-                            other_valves: (HashMap::from([(other_valve_i, goal.cost + 1)])),
+                            other_valves: (create_with_index_item(other_valve_i, goal.cost + 1)),
                         });
                 }
             }
         }
     }
     (complete_graph, useful_valves)
+}
+
+fn create_with_index_item(index: u32, item: u8) -> Vec<u8> {
+    let mut new = vec![0; index as usize];
+    new.insert(index as usize, item);
+    new
+}
+
+fn add_with_index(vec: &mut Vec<u8>, index: u32, item: u8) {
+    if vec.len() <= index as usize {
+        vec.append(&mut vec![0 as u8; index as usize - vec.len()]);
+        vec.push(item);
+    } else {
+        vec.insert(index as usize, item);
+    }
 }
 
 struct State {
@@ -208,7 +208,7 @@ impl State {
 #[derive(Debug)]
 struct ValveInfo {
     flow_rate: u32,
-    other_valves: HashMap<u32, u8>,
+    other_valves: Vec<u8>,
 }
 
 #[derive(Eq, Hash, PartialEq, Debug, Clone, Copy)]
