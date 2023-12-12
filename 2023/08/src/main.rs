@@ -17,9 +17,9 @@ fn part_1(input: Input) -> impl ToString {
                 _ => (),
             }
         }
-        steps += num;
+        steps += 1;
     }
-    steps
+    steps * num
 }
 
 fn part_2(input: Input) -> impl ToString {
@@ -37,11 +37,11 @@ fn part_2(input: Input) -> impl ToString {
                     _ => (),
                 }
             }
-            steps += num;
+            steps += 1;
         }
         list_of_steps.push(steps);
     }
-    lcm(&list_of_steps)
+    lcm(&list_of_steps) * num
 }
 
 fn parse(
