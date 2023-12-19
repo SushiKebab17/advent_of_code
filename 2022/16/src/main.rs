@@ -1,17 +1,14 @@
 use search::bft;
 use std::collections::HashMap;
-// use std::time::Instant;
-// let now = Instant::now();
-// let elapsed = now.elapsed().as_micros();
-// println!("{}ms", elapsed as f64 / 1000.);
+
+// std::io::stdin().read_line(&mut String::new()).unwrap();
+
+// next simplification is to use a u32 instead of a vec
 
 aoc::parts!(1, 2);
 
 fn part_1(input: &[&str]) -> u32 {
     let (complete_graph, valves) = parse(input);
-    for val in complete_graph.keys() {
-        println!("{:?}: {:?}", val, complete_graph[val]);
-    }
     let mut max = 0;
     let mut all_valves = vec![true; valves.len()];
     all_paths(&complete_graph, 0, 30, &mut max, 0, &mut all_valves);
@@ -20,7 +17,6 @@ fn part_1(input: &[&str]) -> u32 {
 
 fn part_2(input: &[&str]) -> u32 {
     let (complete_graph, valves) = parse(input);
-    // std::io::stdin().read_line(&mut String::new()).unwrap();
     let mut set = vec![false; valves.len()];
     let mut max = 0;
 
@@ -29,9 +25,6 @@ fn part_2(input: &[&str]) -> u32 {
         let mut max_b = 0;
         all_paths(&complete_graph, 0, 26, &mut max_a, 0, &mut set);
         all_paths(&complete_graph, 0, 26, &mut max_b, 0, &mut complement(&set));
-        if max_a + max_b > 1792 {
-            std::io::stdin().read_line(&mut String::new()).unwrap();
-        }
         max = max.max(max_a + max_b);
         increment_set(&mut set);
     }
@@ -131,6 +124,7 @@ fn parse(input: &[&str]) -> (HashMap<u32, ValveInfo>, Vec<Valve>) {
                     && (initial_graph[other_valve].0 != 0 || other_valve.0 == ['A', 'A'])
                 {
                     let (valve_i, other_valve_i): (u32, u32);
+
                     if !valve_index_map.contains_key(valve) {
                         valve_i = useful_valves.len() as u32;
                         useful_valves.push(*valve);
@@ -146,6 +140,9 @@ fn parse(input: &[&str]) -> (HashMap<u32, ValveInfo>, Vec<Valve>) {
                     } else {
                         other_valve_i = valve_index_map[other_valve];
                     }
+
+                    // println!("{:?}, {:?}", valve, other_valve);
+                    // println!("{}, {}", valve_i, other_valve_i);
 
                     let mut traverse = bft(
                         State {
@@ -179,7 +176,9 @@ fn create_with_index_item(index: u32, item: u8) -> Vec<u8> {
 }
 
 fn add_with_index(vec: &mut Vec<u8>, index: u32, item: u8) {
-    if vec.len() <= index as usize {
+    if index == 0 {
+        vec[0] = item;
+    } else if vec.len() <= index as usize {
         vec.append(&mut vec![0 as u8; index as usize - vec.len()]);
         vec.push(item);
     } else {
