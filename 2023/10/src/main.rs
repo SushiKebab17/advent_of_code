@@ -7,31 +7,24 @@ aoc::parts!(1, 2);
 
 fn part_1(input: Input) -> impl ToString {
     let (mut land, start_loc, start_typ) = parse(input);
-    // println!("{:?}, {}", start_loc, start_typ);
     let (mut curr_loc, mut curr_typ) = (start_loc, start_typ);
     let mut curr_dir = match curr_typ {
         '-' | 'L' | 'F' => v(1, 0),
         '7' => v(-1, 0),
         _ => v(0, -1),
     };
-    // println!("{}, {}, {}", curr_loc, curr_typ, curr_dir);
     next(&mut curr_loc, &mut curr_typ, &mut curr_dir, &mut land);
-    // println!("{}, {}, {}", curr_loc, curr_typ, curr_dir);
     let mut perimeter = 1;
     while curr_loc != start_loc {
         next(&mut curr_loc, &mut curr_typ, &mut curr_dir, &mut land);
-        // std::io::stdin().read_line(&mut String::new()).unwrap();
-        // println!("{}, {}, {}", curr_loc, curr_typ, curr_dir);
         perimeter += 1;
     }
-    // println!("{}", perimeter);
     perimeter / 2
 }
 
 fn part_2(input: Input) -> impl ToString {
     let (mut land, start_loc, start_typ) = parse(input);
     let (mut curr_loc, mut curr_typ) = (start_loc, start_typ);
-    // println!("{:?}\n{:?}, {}", land, start_loc, start_typ);
     let mut curr_dir = match curr_typ {
         '-' | 'L' | 'F' => v(1, 0),
         '7' => v(-1, 0),
@@ -47,10 +40,7 @@ fn part_2(input: Input) -> impl ToString {
         (max_x, max_y) = (max_x.max(curr_loc.x), max_y.max(curr_loc.y));
         loop_vectors.insert(curr_loc);
         next(&mut curr_loc, &mut curr_typ, &mut curr_dir, &mut land);
-        // std::io::stdin().read_line(&mut String::new()).unwrap();
-        // println!("{}, {}, {}", curr_loc, curr_typ, curr_dir);
     }
-    // println!("{}, {} - {}, {}", min_x, min_y, max_x, max_y);
     land[start_loc] = start_typ;
     let mut last_corner = None;
     let mut inside_points_num = 0;
@@ -62,7 +52,6 @@ fn part_2(input: Input) -> impl ToString {
                     inside_points_num += 1;
                 }
             } else {
-                // print!("{} ", land[v(i as i64, j as i64)]);
                 match land[v(i as i64, j as i64)] {
                     '|' => edge_count += 1,
                     c @ ('L' | 'F') => {
@@ -77,7 +66,6 @@ fn part_2(input: Input) -> impl ToString {
                         last_corner = None;
                     }
                     '7' => {
-                        // println!("{:?}", last_corner);
                         if last_corner == Some('L') {
                             edge_count += 1;
                         }
@@ -86,7 +74,6 @@ fn part_2(input: Input) -> impl ToString {
                     _ => (),
                 }
             }
-            // println!("({}, {}), {}", i, j, edge_count);
         }
     }
     inside_points_num
