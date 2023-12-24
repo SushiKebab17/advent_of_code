@@ -41,11 +41,9 @@ fn part_2(input: Input) -> impl ToString {
 fn find_vertical(pattern: &Vec<Vec<char>>) -> u32 {
     let mut reflection_col = 0;
     'outer: for col in 1..pattern[0].len() {
-        // println!("{}", col);
         let mut i: i32 = col as i32 - 1;
         let mut j = col;
         while i >= 0 && j < pattern[0].len() {
-            // println!("{}, {}", i, j);
             for row in pattern {
                 if row[i as usize] != row[j] {
                     continue 'outer;
@@ -62,11 +60,9 @@ fn find_vertical(pattern: &Vec<Vec<char>>) -> u32 {
 fn find_horizontal(pattern: &Vec<Vec<char>>) -> u32 {
     let mut reflection_row = 0;
     'outer: for row in 1..pattern.len() {
-        // println!("\n{}", row);
         let mut i: i32 = row as i32 - 1;
         let mut j = row;
         while i >= 0 && j < pattern.len() {
-            // println!("{}, {}", i, j);
             for col in 0..pattern[0].len() {
                 if pattern[i as usize][col] != pattern[j][col] {
                     continue 'outer;
@@ -84,11 +80,9 @@ fn find_smudged_horizontal(pattern: &Vec<Vec<char>>) -> u32 {
     let mut reflection_row = 0;
     let mut errors = 0;
     for row in 1..pattern.len() {
-        // println!("\n{}", row);
         let mut i: i32 = row as i32 - 1;
         let mut j = row;
         while i >= 0 && j < pattern.len() {
-            // println!("{}, {}", i, j);
             for col in 0..pattern[0].len() {
                 if pattern[i as usize][col] != pattern[j][col] {
                     errors += 1;
@@ -110,11 +104,9 @@ fn find_smudged_vertical(pattern: &Vec<Vec<char>>) -> u32 {
     let mut reflection_col = 0;
     let mut errors = 0;
     for col in 1..pattern[0].len() {
-        // println!("{}", col);
         let mut i: i32 = col as i32 - 1;
         let mut j = col;
         while i >= 0 && j < pattern[0].len() {
-            // println!("{}, {}", i, j);
             for row in pattern {
                 if row[i as usize] != row[j] {
                     errors += 1;
